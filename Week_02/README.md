@@ -193,3 +193,44 @@ insert(create):O(logN) or O(1)
   最短路径（Shortest Path）：Dijkstra https://www.bilibili.com/video/av25829980?from=search&seid=13391343514095937158
   最小生成树（Minimum Spanning Tree）： https://www.bilibili.com/video/av84820276?from=search&seid=17476598104352152051
   面试具体公司之前进行综合性复习的时候，大家看一下；工程实现，github上搜相应代码，下载下来修改
+  
+##二、学习总结：
+###1.效果、感受
+本周进步很明显，把两周的例题和习题除数方面的都做了一遍，不少困难题都做出来了；两周的视频也仔细看了，而且边看还边做了一些笔记。感觉进步很明显，对算法题不再恐惧了，相信自己能够在超哥的帮助下很好的掌握算法。
+###2.学习过程
+先看录播，边看录播边做笔记，把笔记和每周的学习总结放到一个markDown文档里面，然后着手习题，用习题来检验学习效果。
+###3.收获
+这两周对数组、链表、队列、栈、堆、图均有一定掌握，但树因为没做例题，而疏于掌握，这块需要马上补上。
+###4.刷题笔记
+对jdk的一些api不太熟练，这里对刷题中翻看api手册得到的记录如下:
+Object[]/数组:长度length为arr.length(不需要加()，长度为数组的属性)；两数组是否相等，应该用Arrays.equals(a,b)比较，而不能用a.equals(b)比较，前面true的情况下后面为false
+
+
+String:长度length为s.length()(需要加(),String使用char[]实现的，获取方法得到的是长度为char[] chs.length);index对应的字符为char c = char.charAt(index);String转换为字符数组char[] chs = s.toCharArray();
+
+
+Arrays:两数组是否相等，应该用Arrays.equals(a,b)比较，而不能用a.equals(b)比较，前面true的情况下后面为false;数组排序用Arrays.sort(arr);
+
+
+ArrayList:new ArrayList<>(Collection<? extends E> c),T为可转换为list的Collection
+
+
+Queue:
+
+
+Deque:deque.peek() deque.offer() deque.poll() deque.isEmpty() 没有deque.isFull()
+
+
+ArrayDeque:同Deque，可以初始化大小
+
+
+LinkedList:可以实现Queue，Deque
+
+
+PriorityQueue:自定义的话，需要实现Comparator接口;pq.addAll(Collection<? extends E> c)
+
+
+HashMap:合理初始化大小可以减少用时
+
+
+Collections:...
