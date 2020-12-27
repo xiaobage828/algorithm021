@@ -1,6 +1,6 @@
 #第四周 
 ##一、学习笔记
-###9.深度优先搜索和广度优先搜索
+###9.1深度优先搜索和广度优先搜索
 ####搜索-遍历
 比较简单朴素的搜索，很多时候所有结点遍历一次，找到你所要的结果
 我们要实现这样一个遍历或者搜索的话，毫无疑问我们要保证的事情就是
@@ -249,6 +249,10 @@ const bfs = (root) => {
 };
 
 
+###9.2深度优先搜索和广度优先搜索实战题目解析：二叉树的层次遍历等问题
+
+
+
 
 
 
@@ -318,3 +322,138 @@ https://leetcode-cn.com/problems/coin-change/
    为什么是贪心？就是因为只要记能够跳到最后的那个位置的第一个值，就是只要记这么一个最前者的值，那就节省了一个数组来记录中央的结果，当然也可以节省一层循环，所以它最后是O(N)的时间复杂度，这个时间复杂度是最优的
    关键巧妙的地方是，它是从后往前进行所谓的循环或者叫贪心查找
     jump-game-ii
+    
+    
+###11.二分查找
+这里最关键是化繁为简，首先我们讲二分查找最关键的三个前提条件
+####二分查找的前提
+1. 目标函数单调性(单调递增或者递减)：二分查找指的是在有序的里面进行查找，如果它是无序的话就没法进行二分查找。无序的话，只能从头到尾遍历，正因为是有序的，所以能够通过判断它的某些特征排除掉，比如说前半部分或者排除掉后半部分
+2. 存在上下界(bound)：如果没有上下界的话，那么它的空间可能是无穷大的，那么它就没法往中间扩。当然有一种特殊形态，后面我们继续讲，但是出现的情况少之又少的
+3. 能够通过索引访问(index accessible)：很多时候如果是单链表的话，相对来说即使是有序的，单链表进行二分查找都不是那么容易的。当然如果把单链表进行改造，比如说用它所谓跳表的方式，那就另当别说了
+####代码模板（一定要写熟）
+面试人的时候，最大的问题是写二分的话，经常容易一下子懵了，不知道如何起笔，因为它们概念都知道，但是你要起笔的话就很难，或者是他的代码里面多多少少有一些bug
+所以在这个时候一定要把这个代码模板，写得非常熟练，
+就一开始就把代码模板全部都打完了，打完了之后再把这些值全部都填好，
+根据你最主要的数组是什么，以及它的左右界到底是小于等于的，还是在这里要加一减一，还是不用，再进行微调，最后反复地验证是没有问题的
+一定要把代码模板写得非常熟练，
+// Java
+public int binarySearch(int[] array, int target) {
+    int left = 0, right = array.length - 1, mid;
+    while (left <= right) {
+        mid = (right - left) / 2 + left;//或者 mid = (left+right) >>> 2
+        if (array[mid] == target) {
+            return mid;
+        } else if (array[mid] > target) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return -1;
+}
+首先左右界分别是0和数组长度减1，也就是左右的下标值，这个毋庸置疑，
+while的话里面是left小于等于right，所以这个条件的话有些时候，会变成没有等于号，但是大部分情况下你可以认为是有小于等于的，
+然后得到它的中间值，就是mid这个值，判断mid是否等于等于target，然后来break或者是return这个result，可以先把等于等于放在这里，只要它等于的话就马上return即可
+在这里的话，我们假设这个数组是上升的就是升序排列的，
+如果target大于array[mid]的话说明什么，说明它在右侧，那么要继续向右查找，所以left就把左界向右进行移动，变成mid+1了
+否则的话说明在这左侧，那么右界的话就要向左移动，变成mid-1像这么一个形式
+那么根据这里的话是一种所谓的左下界和右下界为整型的情况下，就是为Integer的情况下，在有些时候可能为实数的情况下，那么就没有所谓的加一和减一，在这个地方就直接等于mid即可
+另外在有些特殊的情况下，这里直接是小于的这种情况下，
+后面在例题的时候会给大家一个更深刻的了解
+//jdk8 实现
+public static int binarySearch(long[] a, long key) {
+        return binarySearch0(a, 0, a.length, key);
+}
+
+ public static int binarySearch(long[] a, int fromIndex, int toIndex,
+                                   long key) {
+        rangeCheck(a.length, fromIndex, toIndex);
+        return binarySearch0(a, fromIndex, toIndex, key);
+ }
+
+private static int binarySearch0(long[] a, int fromIndex, int toIndex,
+                                     long key) {
+        int low = fromIndex;
+        int high = toIndex - 1;
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            long midVal = a[mid];
+            if (midVal < key)
+                low = mid + 1;
+            else if (midVal > key)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found.
+ }
+
+/* JavaScript */
+let left = 0, right = len(array) - 1
+while (left <= right) {
+  let mid = (left + right) >>> 1  //这里是无符号右移
+  if (array[mid] === target) { /*find the target*/; return }
+  else if (array[mid] < target) left = mid + 1
+  else right = mid - 1
+}
+
+C/C++
+
+int binarySearch(const vector<int>& nums, int target) {
+	int left = 0, right = (int)nums.size()-1;
+	while (left <= right) {
+		int mid = left + (right - left)/ 2;
+		if (nums[mid] == target) return mid;
+		else if (nums[mid] < target) left = mid + 1;
+		else right = mid - 1;
+	}
+	return -1;
+}
+
+// Python
+left, right = 0, len(array) - 1 
+while left <= right: 
+	  mid = (left + right) / 2 
+	  if array[mid] == target: 
+		    # find the target!! 
+		    break or return result 
+	  elif array[mid] < target: 
+		    left = mid + 1 
+	  else: 
+		    right = mid - 1
+####二分查找的形式
+见视频
+它是由左右两个边界不断地向中间进行夹逼的过程，这种夹逼的过程又由于这个数组本身它是单调递增的，所以我们每次可以排除一半，
+你可以认为有点像二叉搜索树一样的特性，但是这里的话它是用所谓的数组来进行实现的，而二分查找本身这种有序性的话，很多时候在数学里面的话用得也特别多
+
+####实战题目
+1. sqrtx：必会
+方法1： 二分查找
+y = x^2, (x>0)：抛物线，在y轴右侧单调递归：上下界
+long防止越界 ，left==right返回结果
+方法二：牛顿迭代法  在现实中用得更多的是牛顿迭代法，而不是所谓的二分查找
+https://www.beyond3d.com/content/articles/8/   Fast InvSqrt() 扩展阅读   雷神之锤3的引擎里面  John Carmack
+这个平方根分之一为什么他要这么写，就是因为平方根分之1的话，在3D引擎里面特别是涉及到矩阵变幻、坐标变幻、平方根分之一用得特别多
+因为的话你求两点之间或者三点之间的距离的话，经常是用x平方再用y平方开根号嘛，所以它的根号然后分之1的话用得很多，在这里就把这个加速
+magic number
+//python 
+class Solution(object):
+  def mySqrt(self,x):
+    r = x
+    while r*r > x:
+       r = (r+x/r) /2
+    return r
+也就是不断地迭代当前的值r，迭代的方式就是r再加x除以r，然后除以2，最后要判断r乘以r的话是小于等于x的，说明什么，第一次到达了它的平方根的整数部分它的整数部分肯定是小于等于x就这样
+因为r初始值是x，所以x再乘以x肯定是大于x的，只要它大于x的话，就不断地循环，直到r再乘以r的话，是小于等于x的，就得到它的解，当然等于最好，等于就直接把这个平方根拿到了，如果是小于的话，说明平方根不是一个整数，我们就得到整数部分
+    
+2. valid-perfect-square
+
+####Homework
+1. search-in-rotated-sorted-array搜索旋转排序数组（Facebook、字节跳动、亚马逊在半年内面试常考）：半有序  判断左半部分还是右半部分单调递增
+-暴力：还原O(logN) ->升序 ->二分 :O(logN) (写、总结)
+-正解：二分查找  单调、边界、index
+2. search-a-2d-matrix搜索二维矩阵（亚马逊、微软、Facebook 在半年内面试中考过）
+-化成一维数组进行二分查找，
+-当然也可以从右上角或者在左上角进行一个线性的查找也行
+3. find-minimum-in-rotated-sorted-array寻找旋转排序数组中的最小值（亚马逊、微软、字节跳动在半年内面试中考过）
+4. 使用二分查找，寻找一个半有序数组 [4, 5, 6, 7, 0, 1, 2] 中间无序的地方
