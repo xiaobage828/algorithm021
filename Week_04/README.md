@@ -1,6 +1,7 @@
 #第四周 
 ##一、学习笔记
 ###9.1深度优先搜索和广度优先搜索
+关于广度优先搜索和深度优先搜索本质上，其实就是递归，其实就是写循环，而且找它的重复性，所以本身的话，关键就是大家多练就行了。因为最后的话，你理解了之后，你会发现它们基本上就是找重复性，和之前的逻辑是差不多是相似的
 ####搜索-遍历
 比较简单朴素的搜索，很多时候所有结点遍历一次，找到你所要的结果
 我们要实现这样一个遍历或者搜索的话，毫无疑问我们要保证的事情就是
@@ -250,9 +251,90 @@ const bfs = (root) => {
 
 
 ###9.2深度优先搜索和广度优先搜索实战题目解析：二叉树的层次遍历等问题
-
-
-
+####实战题目
+1. https://leetcode-cn.com/problems/binary-tree-level-order-traversal/#/description（二叉树的层序遍历）硅谷频次前三：
+  BFS
+  DFS+level：这里有个关键点就是每个结点必须访问一次，且仅访问一次，访问顺序无所谓，只要在DFS的时候每次都记录下，当前是在哪一层就好了，然后把这些元素加在它相应所在的层即可，所以用DFS的话其实也是可以的。
+             DFS比较反常识，就是因为它访问的时候，并不是按照层来访问的，它是按照深度来访问的，虽然它是按照深度的次序来访问，但是你在访问这个结点的话，你是知道它现在处于哪一个深度的，就是你在写DFS那个函数，不是每次都有level对吧，
+             所以正是因为你在访问这个结点的话，你有它的深度信息，所以每次的话就把这个相应的结点加在它深度所在的数组里面去即可。
+   看官方题解：
+   class Solution:
+        def levelOrder(self,root: TreeNode) -> List[List[int]]:
+            if root is None;
+               return []
+            queue = [root]  #把root初始化一下进去
+            out = []
+            while queue:
+                  child = []            //该轮循环结果集
+                  node = []             //存放while下一次的数据集
+                  for item in queue:    //把该次queue里的数据循环一下 添加到循环的结果集中
+                      child.append(item.val)
+                      if item.left:
+                         node.append(item.left) //判断当前的数据有没有子节点，有就加到while数据集中
+                      if item.right:
+                         node.append(item.right)
+                  out.append(child)      //把while这次的结果集放到输出数组里面
+                  queue = node           //重要! 这是把node里搜集的该次循环放给queue
+             return out
+把queue里面所有的结点一下子取出来，因为它保证接下来这个循环里面的话，queue里面所取出的结点就是这一层的结点，这一层的结点它先依次都取出来，取出来之后，它的左儿子右儿子这些的话，再加到node结点
+这个node这个数组的话，就是存放while下一次的数据集，也就是说它每一次的话把下一层的话，就放到node里面去，然后再把queue赋给node，
+也就它相当于打乒乓球一样，把所有的这一层的结点先处理一遍，然后把新产生的结点，下一层的话放到一个叫node里面去，然后把node再赋给queue，下一次就从新的这一层开始
+每次的话都处理完一层之后，得到下一层再得到下一层，再得到下一层这样的一个结果
+2. https://leetcode-cn.com/problems/minimum-genetic-mutation/#/description（最小基因变化）讲过很多遍：它所做的事情就和所谓的你这个地方可以生成不同的字符的树，和之前给你一串数字，每个数字就是电话号码簿上按键所对应的，然后问你可以生成怎样的一个树，以及是不是合法的，这种情况大家都可以看一下，其实就是所谓的广度优先搜索就可以解决，
+                                                                                                     当然DFS也可以解决，本质上也就是这个位置，可以放左括号右括号左右括号，然后你怎么变换，最后换出来的话都弄一下
+3. https://leetcode-cn.com/problems/generate-parentheses/#/description（括号生成）之前讲过，多回溯：（必做）
+    递归，
+    DFS与递归代码一样：当时讲的递归，其实它就是一个深度优先搜索，为什么？每一个结点都可以分叉出来左括号和右括号，它其实就分叉出来一个什么，递归的状态树，所以基于这个状态树的结构，我们可以在这个递归的状态树里面进行深度优先搜索，是这么一个思路
+    BFS
+4. https://leetcode-cn.com/problems/find-largest-value-in-each-tree-row/#/description（在每个树行中找最大值）：自己做，和第一题相似
+####Homework
+1. https://leetcode-cn.com/problems/word-ladder/description/单词接龙：
+2. https://leetcode-cn.com/problems/word-ladder-ii/description/单词接龙 II（高频题，多写）：
+3. https://leetcode-cn.com/problems/number-of-islands/岛屿数量（经典题目，网格的遍历）：标准的dfs和bfs的套路，把这个题目学会，用成标准范式即可
+   DFS
+   并查集
+   BFS，思路是什么样子？
+   它的方法其实也算一种常见的解题惯式。那么怎么做？我们就这么想就行了
+   首先用一个嵌套的循环，循环这个数组里面的每一个元素，
+   如果碰到它是1的话，说明什么碰到它是1的话，说明岛屿的数量至少找到了一个，所以岛屿数量加1，
+   然后把和1左右上下相邻的所有的点且相邻的无限递归下去，也就是说和所有1相连接的其他的1全部都打掉，打掉的意思就是说夷为平地从1变成0。
+   对吧，那么再继续往下走，直到我们循环到最末尾，整个地图被我们夷为平地打成0了
+   说明什么，说明我们把所有的岛全部都统计完了。
+   而这个岛的数量的话，就在我们每次碰到1的时候累加的时候就已经加出来了
+   class Solution {
+       public int numIslands(char[][] grid) {
+           if(grid==null||grid.length==0) return 0;
+           int num_isLand = 0;
+           int nr = grid.length;
+           int nc = grid[0].length;
+           for(int r =0;r<nr;r++){
+               for(int c=0;c<nc;c++){
+                   if(grid[r][c]=='1'){
+                       num_isLand++;
+                       dfs(grid,r,c);
+                   }
+               }
+           }
+           return num_isLand;
+       }
+   
+       void dfs(char[][] grid,int r ,int c){
+           if(r<0||c<0||r>=grid.length||c>=grid[0].length||grid[r][c]!='1') return;
+           grid[r][c]='0';
+           dfs(grid,r-1,c);
+           dfs(grid,r,c-1);
+           dfs(grid,r+1,c);
+           dfs(grid,r,c+1);
+       }
+   }
+   前面做例行检查，然后一个嵌套的循环，就是循环二维数组里面的所有的元素，
+   当grid[r][c]==1时，就是碰到陆地了，然后num_isLand++，同时count++的时候还需要干嘛，还需要把整个rc这个点和rc这个点相邻的其他的所有点全部把它标记为0，就相当于我已经num_isLand++了，所以这个点本身的话我就不需要了，不然的话我再继续循环的话又找到1了
+   那么如何标记，这时候就必须深度优先了，因为你只写循环是搞不定的，你只写循环的话只能搞到它相邻的两个1，但是它有相邻的相邻有相邻的相邻子子孙孙无穷尽也，所以这个时候的话必须递归或者是说DFS来做，
+   DFS这个函数的话，代码里面我们命名为dfs，进来之后，我们首先判断r和c的范围，那么它的格子的话必须要在网格里面，所以r不能小于0，c也不能小于0，同时右边界不能超过grid.length和grid[r].length，如果超过的话直接return不用考虑这个点,因为这个点已经出去了，同时的话grid[r][c]必须==1，如果不等于1，说明碰到水，碰到水也可以不用管，就直接return
+   递归终止条件，如果rc的坐标超出地图范围或者是当前这个点的格子里面不是陆地的话，那么就不用再继续递归考虑了
+   不然说明grid[r][c]是1，那么首先把1变为0，同时把r和c的上下左右分别用这个函数去递归标记
+   更高一层，检查参数，两层嵌套循环对二维数组扫描，当发现陆地的时候，把陆地和它周围相邻的所有的其他的陆地就是为1的全部标记为0，发现一个陆地将它夷为平地，直到我们把整个地图扫描完，最后结果就在计数值num_isLand里面，便是这样
+4. https://leetcode-cn.com/problems/minesweeper/description/扫雷游戏（windows上面玩过，所以放这里）：
 
 
 
