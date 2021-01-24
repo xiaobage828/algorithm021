@@ -173,10 +173,30 @@ var totalNQueens = function(n) {
 怎么做？就是这个题目。大家可以自己看一遍，然后的话自己想想怎么做，你可以先用最挫的办法做，也就是最传统的办法做，和位运算其实没有太多的关系，
 也可以用直接位运算来进行DP的办法来做
 
+
+
 ###17.1布隆过滤器
 
 
 ###17.2LRU Cache
 
 
+###18.1初级排序、高级排序、特殊排序的实现和特性
+
+
+###18.2实战题目详解
+####1. https://leetcode-cn.com/problems/relative-sort-array/ 数组的相对排序(比较容易，自己看题解)
+####2. https://leetcode-cn.com/problems/valid-anagram/ 有效的字母异位词
+1. 调系统的函数把字符进行排序，这个排序的话就是用快排
+2. 如果写过计数排序，也就是把它的char放在map里面去排，或者是放在一个数组里面，它的下标反正是0到255之间嘛，然后来计数你字母出了多少次，另外一个字母出现多少次，这个就所谓的计数排序
+这就是之前各位写过的题目，只是没有给大家用专业的排序的名词给大家定义好
+####3. https://leetcode-cn.com/problems/design-a-leaderboard/ 力扣排行榜(此题选做，会员才能做)
+####4. https://leetcode-cn.com/problems/merge-intervals/ 合并区间(高频、不复杂，自己做一下)
+1. 排序加一次扫描：推荐
+2. 连通块：晦涩、代码冗长
+3. 官方题解
+####5. https://leetcode-cn.com/problems/reverse-pairs/ 翻转对(详细讲解):逆序对
+1. 暴力法:两个循环嵌套： O(n^2)
+2. merge-sort：O(nlogn)
+3. 树状数组：竞赛
 ##二、学习总结
