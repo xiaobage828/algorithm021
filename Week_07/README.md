@@ -158,9 +158,9 @@ word search 有1和2都是非常经典的搜索题目.
 word search的话在之前DFS的话都给大家说过，接下来我们看word search 2以及怎么能够优化这样的代码
 ![](word%20search2.jpg)
 网格里面的单词必须是通过相邻的单元格里的字母构成，所谓的相邻就是上下或者是水平方向是相邻的。
-那么这里的相邻表示什么，表示所谓的专业术语叫做四联通，比如说和a相邻的话就是上面的a、下面的k、左面的t、右边的e，所以是上下左右四联通。
-如果把斜线也包含进来，比如说a和a、n和a也说可以相邻的，那么就叫做八联通图。
-那么一般情况下，像这个题目的话，它给你说明了，反正就是四联通就行了。八联通和四联通的话，写法都差不多。后面的话代码会给大家讲。
+那么这里的相邻表示什么，表示所谓的专业术语叫做四连通，比如说和a相邻的话就是上面的a、下面的k、左面的t、右边的e，所以是上下左右四连通。
+如果把斜线也包含进来，比如说a和a、n和a也说可以相邻的，那么就叫做八连通图。
+那么一般情况下，像这个题目的话，它给你说明了，反正就是四连通就行了。八连通和四连通的话，写法都差不多。后面的话代码会给大家讲。
 
 1. words 遍历 --> board search:先写一层循环，然后每一个元素word看oath，o在这里面什么位置找到了之后，看它附近的ath是不是可以在这里找到。然后再看p这样一个东西,然后又去board里面先查一遍，p有没有，p在哪：没有，这种方式是可以写的。
    这种方式的复杂度是多少呢？O(N*m*m*4^k)
@@ -401,7 +401,7 @@ https://en.wikipedia.org/wiki/Game_complexity
  在最坏的情况下，回溯法会导致一次复杂度为指数时间的计算。
 ##########其实它本身的话就是一种递归和分治，只是它要不断地进行试错的环节。
 ###14.2 剪枝实战题目解析
-#### 1. https://leetcode-cn.com/problems/climbing-stairs/  爬楼梯
+#### 1. https://leetcode-cn.com/problems/climbing-stairs/  爬楼梯（非常重要，要掌握与coin change ii的区别和联系，并且掌握降维和泛化的思想）
 所谓的爬楼梯问题和凑零钱问题？
 爬楼梯问题怎么转换为Fibonacci的，以及爬楼梯问题可以转换为零钱兑换问题，也就是Coin Change那个问题，
 你爬楼题可以每次爬一步两步，就类似于你有面值为1和面值为2的钱币，最后 要组成什么，一百块钱或者第n块钱，总值为n，你应该怎么走？
@@ -914,6 +914,7 @@ public class Solution {
 
 
 ###14.3 双向BFS的实现、特性和题解
+
 #### BFS
 
 #### Two-ended BFS / 双向BFS
@@ -929,9 +930,421 @@ public class Solution {
 ##### 2. https://leetcode-cn.com/problems/minimum-genetic-mutation/ 最小基因变化
 
 ###14.4 启发式搜索(Heuristic Search(A*))的实现、特性和题解
+现在我们来看高级搜索的最后一部分，叫做启发式搜索。
+这里的启发式的话来自英文单词heuristic。为什么叫启发式，中文其实没有人这么讲的。
+这里的heuristic的话，你可以认为是智能搜索，或者是根据某一项条件，我们来不断地优化搜索的方向，这个叫heuristic。也就是说你一边搜索，一边有所谓的思考在里面，你可以也叫作思考型搜索，类似于这样。
+但是，我之前给大家概述里面已经讲过了，本质上其实就是通过优先级不断地去找、要找的点，先用优先级高的拿出来搜索即可。
 
+A* （A-Star)算法是一种静态路网中求解最短路最有效的直接搜索方法。
+注意是最有效的直接搜索算法。之后涌现了很多预处理算法（ALT，CH，HL等等），在线查询效率是A*算法的数千甚至上万倍。
+公式表示为： f(n)=g(n)+h(n),
+其中 f(n) 是从初始点经由节点n到目标点的估价函数，
+g(n) 是在状态空间中从初始节点到n节点的实际代价，
+h(n) 是从n到目标节点最佳路径的估计代价。
+保证找到最短路径（最优解的）条件，关键在于估价函数f(n)的选取：
+估价值h(n)<= n到目标节点的距离实际值，这种情况下，搜索的点数多，搜索范围大，效率低。但能得到最优解。并且如果h(n)=d(n)，即距离估计h(n)等于最短距离，那么搜索将严格沿着最短路径进行， 此时的搜索效率是最高的。
+如果 估价值>实际值,搜索的点数少，搜索范围小，效率高，但不能保证得到最优解。
+####代码
+那么我们现在来过一遍代码。本身A*这个算法或者叫启发型搜索的话，就是基于BFS的。
+#####基于BFS代码
+BFS代码就是这个样子，之前给大家埋过一个伏笔。
+与其在这个地方，while queue里面，在queue每次都pop一个最近的元素，与其做这件事情对吧。
+还不如干嘛，在这里pop node的时候，我们再考虑一下这个地方，在pop node的时候，我们可不可以在这里多加一些智能的元素在里面，这里就是说引入了不再是用queue了，queue只是简单的先入先出太傻了。
+在这里用优先队列，
+``````
+def BFS(graph, start, end):
+   
+   queue = []
+   queue.append([start])
+   visited.add(start)
+   
+   while queue:
+      node = queue.pop()  #can we add more intelligence here ?
+      visited.add(node)
+      
+      process(node)
+      node = generate_related_nodes(node)
+      queue.push(nodes)
+``````
+#####A* search 代码模板
+这就是A*的模板了，在这里的话我们就不再用queue，我们叫做PQ，PQ就是priority queue的意思，就priority queue的话把它简写成PQ了
+一开始把start放在PQ里面，visited也要放进去，
+只要PQ不为空的时候，
+每次从PQ里面pop出来优先级最高的结点，然后下面再进行相应地扩散出去，
+这下面代码就是正常的BFS代码或者是DFS其实也是这样的代码，都是一样的
+所以关键就是PQ pop在这里，我们就在这个地方，这就不是问号了，其实就是用这句话我们就加了一定的智能在里面了。
+那么有些同学可能就自然而然会问这个问题，行。你用priority queue感觉用得不错，关键是优先级要怎么来定，对吧。
+那么优先级要怎么来定的话，就是看这个问题，它具体怎样让你更优了，那么这个启发式函数也就是优先级定义函数或者叫做估价函数，
+就是各位在进行A*或者叫启发式搜索的时候，你人要按照你自己的理解把这个估价函数给写出来。
+````
+# Python
+def AstarSearch(graph, start, end):
+	pq = collections.priority_queue() # 优先级 —> 估价函数	
+	    # 那么有些同学可能就自然而然会问这个问题，行。你用priority queue感觉用得不错，关键是优先级要怎么来定，对吧。
+        #  那么优先级要怎么来定的话，就是看这个问题，它具体怎样让你更优了，那么这个启发式函数也就是优先级定义函数或者叫做估价函数，
+        #  就是各位在进行A*或者叫启发式搜索的时候，你人要按照你自己的理解把这个估价函数给写出来。
+	
+	pq.append([start]) 	 #一开始把start放在PQ里面，
+	visited.add(start)	 #visited也要放进去,
+	while pq:  #只要PQ不为空的时候，
+	 	node = pq.pop() # add more intelligence here：每次从PQ里面pop出来优先级最高的结点，然后下面再进行相应地扩散出去
+	                    # 所以关键就是PQ pop在这里，我们就在这个地方，这就不是问号了，其实就是用这句话我们就加了一定的智能在里面了。
+	
+		   #这下面代码就是正常的BFS代码或者是DFS其实也是这样的代码，都是一样的
+		visited.add(node)		
+			
+		process(node) 		
+		nodes = generate_related_nodes(node)    
+	unvisited = [node for node in nodes if node not in visited]		
+	    pq.push(unvisited)
+````
 
+#####估价函数
+那么在这里的话正是因为启发式搜索的话，关键就在于估价函数或者是叫做优先级函数本身要怎么找，那么在这里的话这一页就专门来讲这个启发式函数。
 
+启发式函数：一般把它认为是h(n)，h的话就是之前那个单词heuristic对吧，它用来评价哪些结点最有希望的是一个我们要找的结点，
+           那么优先级最高的话，我们就最先去找就行了，到了最后你会发现它会把所有可能的结点，其实都会找一遍，只不过它找的顺序的话是优先级更高的结点。
+           那么h(n)会返回一个我们假设非负实数好了，就可以认为是从结点n的目标地址的估计的成本类似于这样。
+           （这个话本身的话是比较晦涩的，你就认为是这个值越大的话，说明这个点越优秀，可能会导致最后的结果。
+           你怎么知道这个点，或者是你怎么知道哪些值会导致最后的结果，这后面的话就通过习题，我来具体给大家讲解。
+           大家看这个题目例子就一下子可以体会到了。）
+
+启发式函数是一种告知搜索方向的方法。它提供了一种明智的方法来猜测哪个邻居节点会导向一个目标。
+####实战题目
+#####1. https://leetcode-cn.com/problems/shortest-path-in-binary-matrix/  二进制矩阵中的最短路径
+1. dp
+2. BFS ：经典的BFS代码
+3. A* search
+######Example
+假设棋盘是这么一个样子，1全部都是障碍物
+````
+[
+	[0,0,0,1,0,0,1,0],
+	[0,0,0,0,0,0,0,0],
+	[1,0,0,1,1,0,1,0],
+	[0,1,1,1,0,0,0,0],
+	[0,0,0,0,0,1,1,1],
+	[1,0,1,0,0,0,0,0],
+	[1,1,0,0,0,1,0,0],
+	[0,0,0,0,0,1,0,0]
+]
+````
+白色就是空地，绿色就是走过的足迹，黑色的话是障碍物就是1，那么从这里走到左边去，
+我们人肉眼来看的话，就是感觉从这里开始走，先要从右下角直奔右下角走，走到这里的话发现都是石头挡了，那就往这边绕一圈之后，然后直下。或者是从这里绕上来绕一圈之后，直接下到右下角去。
+- A*
+那么用A*的话，当它在扩散的时候，就会根据估价函数，估价函数指的是这个点到这个点的坐标距离，坐标距离怎么算：就是横坐标差的绝对值加上纵坐标差的绝对值，那么你会发现它的扩散的时候，就尽量会找那些离右下角近的这一点，继续扩散出去，基本上的话我们会发现它会找到一个比较优的解。
+第一次找过来，且它把这些边边角角一看比这些这个点要远的这些点就给筛掉了，后面再去找去了，它就不用去访问了，但是它也会把它放到优先队列里面去。
+假设这个路都没有的话，它还会继续从这边找，只不过的话如果你中间的话，可以事先找到这个点的话，那就不需要了。
+A*整个算法，如果用A*的话，你看它访问的足迹的话，就只在这些绿色的区域，你会发现这个足迹的话是它会保持在和右下角这个点尽量接近的一个位置。
+- BFS
+如果是整个BFS扩散的话，BFS扩散的话，按照BFS整个算法的逻辑性，也就是它的傻扩散的话，一开始q里面只有这个元素，只有左上角元素，
+那么第一层会扩散出这一条、第二层就会扩散出全部这一条、也包括这个点、第二层会扩散出这么多、第三层再往外扩散、第四层再往外面扩散、第五层再往外面扩散，这么下来每次画一个斜对角线对吧画过来，
+最后你会发现要走到这个终点的话，它会把所有的这些点其实都扩散一遍，而且它每次扩散就向外走一步，那么就是对角线一步一步这么走过来。
+- 结论
+由此可见，正是因为A*带有一定的启发式效果，也就是说思考型，它带来一定的思考性，所以在选择这个路径的话更优或者说更加的智能。
+所以从这里看BFS给人的感觉就是比较傻瓜式的搜索或者叫暴力搜索，从图来看就是蠢萌蠢萌的，它就会直接像老牛耕田一样，老老实实地一遍一遍把整个图全部都扫完了之后，发现刚好到了右下角这个点是这么一个过程。
+###### python Implementation
+We perform an A* search to find the shortest path, then return it's length, if there is one. Note: I chose to deal with the special case, that the starting cell is a blocking cell, here rather than complicate the search implementation.
+````
+class Solution:
+    def shortestPathBinaryMatrix(self, grid):
+        shortest_path = a_star_graph_search(
+            start              = (0, 0),   //开始结点
+            goal_function      = get_goal_function(grid),  //最后的目标是什么，找右下的点
+            successor_function = get_successor_function(grid), //下一个优先来取的东西
+            heuristic          = get_heuristic(grid)  //估价函数到底是怎么样的
+        )  //主力函数就是做这么一个事情，看这个即可（定制化）
+        if shortest_path is None or grid[0][0] == 1:
+            return -1
+        else:
+            return len(shortest_path)
+````
+###### A* search function
+This implementation is somewhat general and will work for other constant-cost search problems, as long as you provide a suitable goal function, successor function, and heuristic.
+````
+def a_star_graph_search(
+            start,
+            goal_function,
+            successor_function,
+            heuristic
+	):
+    visited = set()
+    came_from = dict()
+    distance = {start: 0}
+    frontier = PriorityQueue()  #首先这里不再是用q，而是用PQ
+    frontier.add(start)  #还是一开始把start放进去
+    while frontier: #只要PQ不为空的话，就继续
+        node = frontier.pop() #这里每次把头结点给取出来
+        if node in visited:  #头结点取出来之后判重，就是没有被访问过
+            continue
+        if goal_function(node):  #同时把goal拿出来之后
+            return reconstruct_path(came_from, start, node)  #如果走到了最后一个结点，把路径长度返回
+        visited.add(node)
+        for successor in successor_function(node):  #不然的话就是继续搜索,继继续搜索的话就是开始扩散结点，从当前node怎么扩散，它的successor就是八连通图
+            frontier.add(
+                successor,
+                priority = distance[node] + 1 + heuristic(successor)  #所以这个位置就是做了扩散之后，它就算出新的priority，得到了这个点就叫successor，它就把successor的重新的优先级通过heuristic method 给它算出来了，按照优先级加到了优先级队列里面去，所以它的优先级就是这么来定的。
+                                                                      #也就是当前的distance再加1再加successor和终点之间的距离，叫做heuristic（比较他们的坐标差，就是这个坐标和右下角/目标点那个坐标之间的距离）
+            )
+            if (successor not in distance
+                or distance[node] + 1 < distance[successor]):
+                distance[successor] = distance[node] + 1
+                came_from[successor] = node   #如果successor不在distance里面，或者要做的一件事情，就是把distance successor进行一轮更新，也就是这个时候它distance会更远了
+                                              #这里的话你可以不做也行，你每次就是硬算，但是这里的话做了的话就是相当于可以加速或者是缓存一下
+    return None
+
+def reconstruct_path(came_from, start, end):
+    """
+    >>> came_from = {'b': 'a', 'c': 'a', 'd': 'c', 'e': 'd', 'f': 'd'}
+    >>> reconstruct_path(came_from, 'a', 'e')
+    ['a', 'c', 'd', 'e']
+    """
+    reverse_path = [end]
+    while end != start:
+        end = came_from[end]
+        reverse_path.append(end)
+    return list(reversed(reverse_path))
+````
+######Goal function
+We need a function to check whether we have reached the goal cell:
+````
+def get_goal_function(grid):
+    """
+    >>> f = get_goal_function([[0, 0], [0, 0]])
+    >>> f((0, 0))
+    False
+    >>> f((0, 1))
+    False
+    >>> f((1, 1))
+    True
+    """
+    M = len(grid)
+    N = len(grid[0])
+    def is_bottom_right(cell):
+        return cell == (M-1, N-1)  //判断当前这个点是不是走到最后了
+    return is_bottom_right
+````
+######Successor function
+We also need a function to find the cells adjacent to the current cell:
+````
+def get_successor_function(grid):
+    """
+    >>> f = get_successor_function([[0, 0, 0], [0, 1, 0], [1, 0, 0]])
+    >>> sorted(f((1, 2)))
+    [(0, 1), (0, 2), (2, 1), (2, 2)]
+    >>> sorted(f((2, 1)))
+    [(1, 0), (1, 2), (2, 2)]
+    """
+    def get_clear_adjacent_cells(cell):
+        i, j = cell
+        return (
+            (i + a, j + b)
+            for a in (-1, 0, 1)
+            for b in (-1, 0, 1)
+            if a != 0 or b != 0
+            if 0 <= i + a < len(grid)
+            if 0 <= j + b < len(grid[0])
+            if grid[i + a][j + b] == 0
+        )
+    return get_clear_adjacent_cells
+````
+######Heuristic
+The chosen heuristic is simply the distance to the goal in a clear grid of the same size. This turns out to be the maximum of the x-distance and y-distance from the goal. This heuristic is admissible and consistent.
+````
+def get_heuristic(grid): 
+    """
+    >>> f = get_heuristic([[0, 0], [0, 0]])
+    >>> f((0, 0))
+    1
+    >>> f((0, 1))
+    1
+    >>> f((1, 1))
+    0
+    """
+    M, N = len(grid), len(grid[0])
+    (a, b) = goal_cell = (M - 1, N - 1)
+    def get_clear_path_distance_from_goal(cell):
+        (i, j) = cell
+        return max(abs(a - i), abs(b - j))  #heuristic的话做的一件事情就是算传进来的grid和它当前的点距离goal右下角点它之间的距离
+                                            #怎么算？就是横坐标的差的绝对值，加上纵坐标差的绝对值，这里它不是加的关系，它这里是换了另外一个是max的关系，那个代码会更好一点
+    return get_clear_path_distance_from_goal
+````
+######Priority queue
+The Python standard library provides a heap data structure, but not a priority-queue, so we need to implement one ourselves.
+````
+from heapq import heappush, heappop
+
+class PriorityQueue:
+    
+    def __init__(self, iterable=[]):
+        self.heap = []
+        for value in iterable:
+            heappush(self.heap, (0, value))
+    
+    def add(self, value, priority=0):
+        heappush(self.heap, (priority, value))
+    
+    def pop(self):
+        priority, value = heappop(self.heap)
+        return value
+    
+    def __len__(self):
+        return len(self.heap)
+````
+
+  估价函数: h(current_point) = dist(current_point,destination_point)
+  这个讲完了之后，我给大家讲一个就是在一个二维矩阵里面，估价函数应该怎么弄：
+  判断状态的相似性或者在二维的矩阵里面的这个图它之间的距离的相似性总共用的一个办法： https://dataaspirant.com/five-most-popular-similarity-measures-implementation-in-python/
+  Manhattan distance = |x1-x2| + |y1-y2|
+  Hamming distance = sum(el1 != el2 for el1, el2 in zip(s1, s2))  //python3 汉明距离就是两个字符串之间对应的位置不同的个数
+###### java Implementation
+````
+class Solution {
+    
+    public int shortestPathBinaryMatrix(int[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0) {//grid合法性校验
+            return -1;
+        }
+        if (grid[0][0]==1){//起点为障碍物即1，返回-1
+            return -1;
+        }
+        int[] dx=new int[]{-1,0,1,0,-1,1,1,-1};
+        int[] dy=new int[]{0,1,0,-1,1,-1,1,-1};  //八连通
+        int M = grid.length-1;
+        int N = grid[0].length-1;
+        if(grid[M][N]==1) return -1; //终点为障碍物即1，返回-1
+        int[] start = new int[]{0,0,grid[0][0] = 1};
+        Queue<int[]> q  = new PriorityQueue<int[]>(new Comparator<int[]>(){  //优先级队列
+            public int compare(int[] i1,int[] i2){
+                return Math.max(M - i1[0], N - i1[1])+i1[2] - i2[2]-Math.max(M - i2[0], N - i2[1]);  //先遍历步数+距离较小的点
+            }
+        });
+        q.offer(start);
+        while(!q.isEmpty()){  //A* search 
+            int[] cell = q.poll();
+            int step = grid[cell[0]][cell[1]];
+            if(cell[0]==M && cell[1]==N) return step;
+            for(int k=0;k<8;k++){  //八连通扩散
+                int y = cell[0]+dy[k];
+                int x = cell[1]+dx[k];
+                if(y <0 || y>M|| x<0||x>N) continue;
+                if (grid[y][x] != 0 && grid[y][x] <= step + 1) continue;
+                int[] next = new int[]{y,x,grid[y][x]=step+1};
+                q.offer(next);
+            }
+        }
+        return -1;
+    }
+}
+````
+
+#####2. https://leetcode-cn.com/problems/sliding-puzzle/  滑动谜题
+这个题目的话指的是什么呢？指的是一个2X3的板，它有数字01234这种，最后的话你可以滑动中间0，滑动中间0的话，最后的话让状态从任何一个其他的状态就是变为123450这个状态（123450这6个元素组成的数组的状态树中由任何一个状态变为123450这个状态）。
+它这个题目的话没有讲清楚，我个人觉得这个题目的话写得非常不好，在这里的话更好的话是给大家看一个板子的作图，那我们就直接看这个板子。
+所谓的sliding puzzle叫滑动谜题，其实一个经典的问题，名字叫做8 puzzle。源自于小时候大家都玩过的一个游戏，这个游戏的话就给你一个3X3这样的板子，中间有一块是空的，中间这一块是空的，你就认为中间这一块是0就好了，你可以不断地上下左右移动这些板子，最后让板子要形成一种所谓的胜利的状态，就是12345678，最后空在这个地方。
+小时候我想大家都玩过那种游戏，给你这么一块3X3的，有些时候是4X4的，有些时候5X5的或者5X6的都无所谓，mXn的好就行了，中间有块空的。
+这个图案的话是一个圣斗士星矢或者是一个卡通人物或者是一个风景照，让你挪最后挪出来的话，风景照或者卡通人物是成型的。
+![](8puzzles.jpg)
+我们看这个图，那么其实就是我们这个题目就没有这么fancy各位。每个方块标了一个数字，这个数字最后让你挪，挪成有序的12345678，最后这里是空的。
+这个问题因为有八个格子，所以叫做8 puzzle。但其实可以是任何维度的，这里的话是2X3的更加的容易一点。
+这个弄好了之后，你会发现这个怎么做？123405，格子一画画出来，大家可以自己画一下，就只剩5和0没有归位，没有归成这样的位置，交换5和0，其实就是这样子。
+我们再看一下这样的一个形式123540，要做的可能就复杂很多了，这种形式就是没有办法了。
+
+状态树是什么样子，状态树的话也比较容易，就是把棋盘扩散出不同的棋盘，你每次就移0的位置嘛。
+
+接下来我们来看这个东西怎么弄，是我们这个东西怎么弄。这个东西要搞的话，我们涉及到一些技术处理，以及关键是这个是二维的一个板子，二维的板子要怎么处理的话，我们接下来就给大家看这个东西应该怎么弄。
+首先的话在这里针对这个题目本身的话，它的算法的话有好几种给大家首先看：
+1. DFS：随便移就行了，每次移的时候就来记它到底要多少zone，它最后的状态是有限的，所以的话你DFS可以
+2. BFS：较好的办法是BFS，BFS的话可以得到你第一次这个状态变成最终态的时候，它的步数就是最优解，所以的话它能更快地找到最优解
+````
+首先的话，这里为了方便存储，一般来说像这种题目，这个棋盘虽然是2X3的，但最后的话会把整个所有的数字，都放在一个字符里面去，把所有的数字变成字符，然后存成一个一维的字符数组，也就是把它存成字符串
+class Solution(object):
+    def slidingPuzzle(self, board):
+        #技术处理：就得到了这么一堆数，这堆数是什么意思。大家可以自己先体会一下。这堆数是什么意思？其实就是它的方向变换向量，就类似四连通图里面的向量或者是八连通图里面的向量。
+        moves = {
+            0: [1,3],
+            1: [0,2,4],
+            2: [1,5],
+            3: [0,4],
+            4: [1,3,5],
+            5: [2,4]
+        } 
+        #初始化
+        used = set()#已经访问过的结点
+        cnt = 0  
+        s = "".join(str(c) for row in board for c in row)  #2X3的数组换成是一维的字符数组，一维字符串
+        q = [(s, s.index("0"))]
+        while q:
+            new = []
+            for s, i in q:
+                used.add(s)
+                if s == "123450"://胜利状态是'123450'
+                   return cnt
+                arr = [c for c in s]
+                for move in moves[i]: //连通
+                    new_arr = arr[:]
+                    new_arr[i], new_arr[move] = new_arr[move], new_arr[i]
+                    new_s = "".join(new_arr)
+                    if new_s not in used:
+                        new.append((new_s,move))
+            cnt +=1
+            q = new
+        return -1
+````
+BFS2、BFS3均用python写：见视频，略
+3. A* search：最好的一种方法
+````
+class Solution(object):
+    def slidingPuzzle(self, board):
+        self.scores = [0]*6   #分数
+        goal_pos = {1:(0,0), 2:(0,1), 3:(0,2), 4:(1,0), 5:(1,1), 0:(1,2)}   #目标状态:0-5各个值及其的目标坐标
+
+        for num in range(6): #Pre calculate manhattan distance   #它这个board和需要的终点它的分数到底是多少
+            self.scores[num] = [[abs(goal_pos[num][0] - i) + abs(goal_pos[num][1] - j) for j in range(3)] for i in range(2)]    #0-5各个值的处于board的每个坐标到其目标坐标的曼哈顿距离
+        #(1,2)  -> [0,0],[0,1],[0,2],[1,0],[1,1],[1,2]
+        #(0,0)  -> [0,0],[0,1],[0,2],[1,0],[1,1],[1,2]
+        #(0,1)  -> [0,0],[0,1],[0,2],[1,0],[1,1],[1,2]
+        #(0,2)  -> [0,0],[0,1],[0,2],[1,0],[1,1],[1,2]
+        #(1,0)  -> [0,0],[0,1],[0,2],[1,0],[1,1],[1,2]
+        #(1,1)  -> [0,0],[0,1],[0,2],[1,0],[1,1],[1,2]        
+        
+        Node = namedtuple('Node',['heuristic_score', 'distance', 'board'])
+        heap = [Node(0,0,board)]  #优先队列，只要把优先级最高的可以放出来，它可以用heap表示，也可以用priority表示也可以
+        closed = []
+
+        while len(heap)>0:   #只要heap不为空
+            node = heapq.heappop(heap)
+            if self.get_score(node.board) == 0:  #每次从heap里面拿出优先级最高的元素，拿出优先级最高的元素，就算它和终点是不是等于0。如果它和终点的分数等于0，说明什么，说明它和123450完全一模一样，这样的话说明已经到了
+                return node.distance  #已经到了，就把distance返回去
+            elif node.board in closed:
+                continue
+            else:
+                for neighbor in self.get_neighbors(node.board):  #不然的话就用get_neighbors进行扩散，就是把0的上下左右全部给扩散出来
+                    if neighbor in closed: continue
+                    heapq.heappush(heap, Node(node.distance+1+self.get_score(neighbor), node.distance+1,neighbor)) #扩散出neighbor，就算出它的优先级，算优先级就用get_score来算优先级，算完的优先级就放到heap里面，接下来放到priority queue里面，继续再找
+            closed.append(node.board)
+        return -1
+    
+    def get_neighbors(self,board):
+        r, c = (0,board[0].index(0)) if 0 in board[0] else (1,board[1].index(0))
+        res = []
+        for offr, offc in [[0,1],[0,-1],[1,0],[-1,0]]:  #用四连通图进行上下左右扩散，且来判断这个东西是否超出board。   建议用上面bfs的代码
+            if 0 <= r+offr <2 and 0<= c+ offc <3:
+                board1 = copy.deepcopy(board)
+                board1[r][c], board1[r+offr][c+offc] = board1[r+offr][c+offc],board1[r][c]
+                res.append(board1)
+        return res
+    def get_score(self, board):
+        return sum([self.scores[board[i][j]][i][j] for i in range(2) for j in range(3)])  #该状态下的board到目标状态的board值的对应坐标的曼哈顿距离和（score的算法就是用它的坐标差，也同理就是用它的相应的位置坐标之间的差值，来表示它这个score是多少）
+````
+花花酱 8 Puzzles – Bidirectional A* vs Bidirectional BFS（就是来解决puzzle的问题，它这里不再解决sliding puzzle，而是用这个8 puzzles，那么8puzzles的话它比较了不同的办法，它比较的这些办法的话是哪些，就是Nodes expended: BiDirectional A* /双向A*<< A* (Manhattan) <= Bidirectional BFS/双向BFS < A* Hamming << BFS，Running time: BiDirectional A* < Bidirectional BFS <= A* (Manhattan) < A* Hamming << BFS） ：
+https://zxi.mytechroad.com/blog/searching/8-puzzles-bidirectional-astar-vs-bidirectional-bfs/
+
+#####3. https://leetcode-cn.com/problems/sudoku-solver/  解数独
+没有讲解
+####总结
+总体来说的话在这一节最难的这一部分的话A*就给大家讲到这里，大家一开始听完这些懵懵懂懂的，我觉得是很正常的。
+第一遍听的话第一遍自己，我自己在大二的时候第一遍学的话，也是摸风一样，但是最关键的就是过遍数，你做了第三遍第四遍第五遍的时候，就慢慢可以找到感觉了。
 ###15. 红黑树和AVL树
 
 ####树Tree
