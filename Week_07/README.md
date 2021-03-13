@@ -914,21 +914,115 @@ public class Solution {
 
 
 ###14.3 双向BFS的实现、特性和题解
-
-#### BFS
-
+我们现在继续来看双向BFS，之前说过了在朴素的搜索里面优化的话主要是两个方向：1.尽量让它去重复以及尽早地剪枝，2.在搜索的方向上面进行一些加强
+我们先讲之前讲过的BFS的话，全部都是单向搜索。这里的话给大家讲一个新的思路，就是所谓的双向BFS，这个在搜索中，其实在高级的搜索中用得较多，而且代码的话并不难。
+思路是什么的话，首先给大家说一下：
+#### BFS：单向搜索
+我们来看这个图，这是一个简单的双向连通图，从A一直连最后要连到L去，请问有最短可以走多少步？
+怎么从A计算到L去吗？那就从A做一个广度优先搜索BFS，广度优先搜索搜索出去之后先到达邻接的两个点，一个是C、一个是B，把邻接的两个点C和B加到queue里面，
+然后再依次处理queue里面接下来的元素，先处理C，C处理完了之后，它没有剩下的结点，再处理B，B的话再扩散出D和E，
+同理，G的话扩散出IJ，再扩散出L，
+这就是真个BFS像水波纹一样，向外面一层一层地扩散，当它第一次扩散到L的话，扩散的步数就是它的最少步数。
+那么我们将前面这个图，按照它扩散出来的层次的关系，它每一个颜色指的是扩散的步数，A的话是起始点，蓝色的话BC一次扩散，黄色二次扩散，灰色三次扩散，橙色四次扩散。
+![](双向连通图BFS.png)
+那就把它直接放到这么一个分好层，就是把这个图稍微变形一下，重新挪动一下位置，让它看起来更加得有层次感。
+那么第1层、第2层、第3层、第4层、第5层、第6层，然后就走过来，这就是BFS。
+![](双向连通图BFS搜索层级.png)
 #### Two-ended BFS / 双向BFS
 那么双向BFS是什么样子呢？也很容易，与其从A开始一步一步扩散，我们直接这样做吧，既从A（起点）向右边一层一层扩散，也从L（终点）向左边一层一层一层地扩散。
 所以这边第1层、第2层、第3层，同理对于L向左进行扩散，也是第1层、第2层、第3层、第4层，上面这个数字的话，就只针对A，对L的话就把它反过来：第1层、第2层、第3层，当它扩散的两层的结点有重合的时候，第1次重合的地方就是A和L两者之间的最短路径，把这边扩散的步数再加上右边扩散的步数，最后的话和就是最后的总的步数。
 这就类似于我们要火车高铁要经过高山的时候，会打一个山洞，那么你要穿这个山的话，你从A点开始打洞，一直打到B点，那么更好的方式就是A和B同时往中间打就行了，最后在中间相遇的时候，那么更快，就是这么一个思路。
-作业：总结双向BFS模板
-
+![](双向连通图双向BFS.png)
+#### 作业：总结双向BFS模板
 
 #### 实战题目
-##### 1. https://leetcode-cn.com/problems/word-ladder/ 单词接龙
+##### 1. https://leetcode-cn.com/problems/word-ladder/ 单词接龙 （非常高频题，记得多写：word ladder的话在硅谷的公司的话，不知道被考了多少次了）
+如果各位用BFS应该怎么写？所以如果各位面试碰到这个题目的话，首先和面试官把这个题目的各种corner cases（边界条件），所谓的corner cases就是各种边界条件，各种可能比较细节的问题和面试官给讨论清楚。
+讨论清楚了之后，然后要做的一件事情就是什么，把所有可能的想法都给他说好了。
+1. BFS:从beginWord开始向外扩散，每次扩散这个字符扩散到不同的字符，然后看这个字符是不是在这个单词列表里面。是的话，就把这些单词作为候选的加到queue里面去
+2. DFS:DFS反复去找，但是的话DFS要做比较强的剪枝觉得。大家可以去试一下写DFS，就是要把所有的剪枝都列出来。因为这个单词的列表是有限的，所以这里做DFS的话的复杂度，其实没有想象那么高。
+3. Two-ended BFS/双向BFS:前面两者大家有兴趣的话可以自己写一下，我在这里要求大家BFS自己现在就动手，先写一下
+java:
+````
+/*
+双向bfs并不是从两端同时bfs, 实际上是这次从begin进行bfs, 下次从end进行bfs, 像这样循环操作
+*/
+class Solution {
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        //endWord也是transformed word, 所以必须存在于wordList中, 否则返回0, 表示无法从beginWord变成endWord
+        if(!wordList.contains(endWord))
+            return 0;
+        //
+        int n = beginWord.length();
+        //key是通用状态; value是拥有该通用状态的词
+        HashMap<String,ArrayList<String>>all_commons = new HashMap<>();
+        //记录wordList中所有元素对应的所有通用状态
+        wordList.forEach(
+                word->{
+                    for(int i=0; i<n; i++){
+                        String common = word.substring(0,i)+"*"+word.substring(i+1);
+                        if(!all_commons.containsKey(common))
+                            all_commons.put(common, new ArrayList<String>());
+                        all_commons.get(common).add(word);
+                    }
+                }
+        );
+        //使用HashSet实现宽度优先遍历bfs
+        HashSet<String> begin = new HashSet<>();
+        HashSet<String> end = new HashSet<>();
+        begin.add(beginWord);
+        end.add(endWord);
+        //记录访问过的节点
+        HashSet<String> visited = new HashSet<>();
+        //细节: 返回值的初始化, 由于beginWord!=endWord, 所以至少需要一步变化
+        int len = 1;
+        while(!begin.isEmpty() && !end.isEmpty()){
+            //核心:控制当前循环从哪个方向进行bfs; 让begin指向size更小的集合, 这样就不会一直从一个方向bfs了
+            if(begin.size()>end.size()){
+                HashSet<String> tmp = begin;
+                begin = end;
+                end = tmp;
+            }
+            //记录遍历begin时每个元素的邻居, 也就是cur的邻居
+            HashSet<String> neighbor = new HashSet<>();
+            for(String cur : begin){
+                //遍历cur的邻居
+                for(int i=0; i<n; i++){
+                    String tmp = cur.substring(0,i)+"*"+cur.substring(i+1);
+                    //有了all_commons哈希表,就不用每个位置都遍历'a'~'z'了
+                    //细节:如果cur是beginWord的话, all_commons没有统计beginWord的通用状态, 所以all_commons.get(tmp)可能返回null, 所以要提前检查一下
+                    if(!all_commons.containsKey(tmp))
+                        continue;
+                    for(String str : all_commons.get(tmp)){
+                        if(end.contains(str))
+                            return len+1;
+                        if(!visited.contains(str)){
+                            visited.add(str);
+                            //记录cur的邻居
+                            neighbor.add(str);
+                        }
+                    }
+                }
+            }
+            //处理完begin中的元素后, 让begin指向begin中的元素的邻居
+            begin = neighbor;
+            //路径长度++
+            len++;
+        }
+        //执行到这里说明双向bfs没有相遇, 也就是没有找到从beginWord到endWord的路径
+        return 0;
+    }
+}
+````
+python:略
 
-##### 2. https://leetcode-cn.com/problems/minimum-genetic-mutation/ 最小基因变化
+##### 2. https://leetcode-cn.com/problems/word-ladder-ii/ 单词接龙ii （非常高频题，记得多写）
+没有讲解
 
+##### 3. https://leetcode-cn.com/problems/minimum-genetic-mutation/ 最小基因变化
+各位自己去做，你转换成这个图形的话，就是用树形结合的话，你进行转换，你会发现这个题目的话和那个题目（word-ladder）其实就是一样的。 这个题解里面没有画图的，但其实的话和那个题目就是一样的。
+各位的话就类似于先写一个BFS对吧，然后再试着用刚才讲的双向BFS来写一下基因的问题。
+这个题目和那个题目（word-ladder）基本上就是一个意思。
 ###14.4 启发式搜索(Heuristic Search(A*))的实现、特性和题解
 现在我们来看高级搜索的最后一部分，叫做启发式搜索。
 这里的启发式的话来自英文单词heuristic。为什么叫启发式，中文其实没有人这么讲的。
