@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/number-of-1-bits" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/power-of-two" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/relative-sort-array" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/reverse-bits" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
