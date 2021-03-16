@@ -275,16 +275,410 @@ var totalNQueens = function(n) {
 同时的话Redis缓存
 以及垃圾邮件，就是来了一个邮件或者一个评论，它到底是不是比如说涉黄的、涉黑的以及不正当的言论之类的，它也可以用一个布隆过滤器，然后很快地来判断，不是的话肯定不是，是的话它再去DB里面查一下 和那些涉黄涉黑的规则是否相符合，类似于这样。
 ####代码实现
+接下来我们再看用程序是如何实现一个简单的布隆过滤器的。
 - python
+  首先我们来看一个最简单的版本，就是用Python实现了一个版本。
+  它用到了系统的一个数据结构叫bitarray，bitarray的话就是一个数组，数组里面存的都是二进制位，那么就是模拟这一坨二进制位，所以用了一个叫bitarray的，就是二进制数组。
+````
+from bitarray import bitarray
+import mmh3
 
+class BloomFilter:
+  def _init_(self, size, hash_num): #初始函数有个size，总共的话有多少个元素放里面；同时还有个hash_num指的是一个元素进来，它分成多少个二进制位。之前我们举的例子，像![](布隆过滤器示意图形式二.png)的话就是分成两个，所以它的hash_num就是2；像![](布隆过滤器示意图.png)的话hash_num就是3，这里一个元素会分到三个二进制位去。所以hash_num指的是一个元素分多少个二进制位
+     self.size = size
+     self.hash_num = hash_num
+     self.bit_array = bitarray(size) #bitarray直接先初始化起来，然后再把它全部设成0。所以开始的时候二进制数组的索引全部为0
+     self.bit_array.setall(0)
+  
+  def add(self, s): #那么接下来我们来看一个元素s进来，s进来的话，我们循环hash_num次，假设hash_num是3的话，就是生成三个二进制位。那么每次的话就把seed和元素s进行一次哈希再模上bitarray的size。因为你不能让下标超出去，就得到了一个相应的下标的位置，这里叫result，其实就是index，然后把相应的index所在的二进制位  置为1。这就是布隆过滤器添加元素的时候，我们刚才讲的原理
+     for seed in range(self.hash_num):  #比如说分成三个，那就循环三次，那么每一次的话就把seed和元素s哈希一下再模上二进制数组的总长度，就得到了它所对应的二进制位的索引，然后把相应的二进制位  置为1
+        result = mmh3.hash(s, seed) % self.size
+        self.bit_array[result] = 1
+  
+  def lookup(self, s): #那么我们再看lookup是什么样子的？同理可得和上面一样，也是循环hash_num次，每一次的话就找到了所对应的下标，叫result，我们来判断，只要result等于等于0，那么我们就什么，确定它肯定是不存在的是Nope，如果它全部都为1，我们输出什么呢，注意这里不能输出Yes，因为我们没法百分之百确定它肯定在，我们只能说出这里说的是Probably，指的是很有可能在，就这么一个过程。怎么查询的怎么调用，就这么调就行了。
+     for seed in range(self.hash_num):
+        result = mmh3.hash(s, seed) % self.size
+        if self.bit_array[result] == 0
+           return "Nope"
+     return "Probably"
+     
+ bf = BloomFilter(500000, 7)
+ bf.add("dantezhao")
+ print (bf.lookup("dantezhao")
+ print (bf.lookup("yyj"))
+````
 - java
+````
+//Java
+public class BloomFilter {
+    private static final int DEFAULT_SIZE = 2 << 24;    
+    private static final int[] seeds = new int[] { 5, 7, 11, 13, 31, 37, 61 };    
+    private BitSet bits = new BitSet(DEFAULT_SIZE);    
+    private SimpleHash[] func = new SimpleHash[seeds.length];    
+    
+    public BloomFilter() {    
+        for (int i = 0; i < seeds.length; i++) {         
+           func[i] = new SimpleHash(DEFAULT_SIZE, seeds[i]);        
+        }    
+    }    
+    
+    public void add(String value) {    
+        for (SimpleHash f : func) {       
+             bits.set(f.hash(value), true);        
+        }    
+    }    
+    
+    public boolean contains(String value) {     
+       if (value == null) {       
+            return false;        
+       }        
+       boolean ret = true;        
+       for (SimpleHash f : func) {      
+             ret = ret && bits.get(f.hash(value));    
+       }        
+       return ret;    
+    }    
+    
+    // 内部类，simpleHash    
+    public static class SimpleHash {    
+        private int cap;        
+        private int seed;        
+        
+        public SimpleHash(int cap, int seed) {      
+              this.cap = cap;      
+              this.seed = seed;        
+        }        
+        
+        public int hash(String value) {       
+             int result = 0;       
+             int len = value.length();      
+             for (int i = 0; i < len; i++) {         
+                    result = seed * result + value.charAt(i); 
+             }            
+             return (cap - 1) & result;        
+        }    
+    }
+}
+````
+  2 https://github.com/lovasoa/bloomfilter/blob/master/src/main/java/BloomFilter.java
+````
+package com.github.lovasoa.bloomfilter;
 
+import java.util.BitSet;
+import java.util.Random;
+import java.util.Iterator;
 
+public class BloomFilter implements Cloneable {
+  private BitSet hashes;
+  private RandomInRange prng;
+  private int k; // Number of hash functions
+  private static final double LN2 = 0.6931471805599453; // ln(2)
+
+  /**
+   * Create a new bloom filter.
+   * @param n Expected number of elements
+   * @param m Desired size of the container in bits
+   **/
+  public BloomFilter(int n, int m) {
+    k = (int) Math.round(LN2 * m / n);
+    if (k <= 0) k = 1;
+    this.hashes = new BitSet(m);
+    this.prng = new RandomInRange(m, k);
+  }
+
+  /**
+   * Create a bloom filter of 1Mib.
+   * @param n Expected number of elements
+   **/
+  public BloomFilter(int n) {
+    this(n, 1024*1024*8);
+  }
+
+  /**
+  * Add an element to the container
+  **/
+  public void add(Object o) {
+    prng.init(o);
+    for (RandomInRange r : prng) hashes.set(r.value);
+  }
+  /** 
+  * If the element is in the container, returns true.
+  * If the element is not in the container, returns true with a probability ≈ e^(-ln(2)² * m/n), otherwise false.
+  * So, when m is large enough, the return value can be interpreted as:
+  *    - true  : the element is probably in the container
+  *    - false : the element is definitely not in the container
+  **/
+  public boolean contains(Object o) {
+    prng.init(o);
+    for (RandomInRange r : prng)
+      if (!hashes.get(r.value))
+        return false;
+    return true;
+  }
+
+  /**
+   * Removes all of the elements from this filter.
+   **/
+  public void clear() {
+    hashes.clear();
+  }
+
+  /**
+   * Create a copy of the current filter
+   **/
+  public BloomFilter clone() throws CloneNotSupportedException {
+    return (BloomFilter) super.clone();
+  }
+
+  /**
+   * Generate a unique hash representing the filter
+   **/
+  public int hashCode() {
+    return hashes.hashCode() ^ k;
+  }
+
+  /**
+   * Test if the filters have equal bitsets.
+   * WARNING: two filters may contain the same elements, but not be equal
+   * (if the filters have different size for example).
+   */
+  public boolean equals(BloomFilter other) {
+    return this.hashes.equals(other.hashes) && this.k == other.k;
+  }
+
+  /**
+   * Merge another bloom filter into the current one.
+   * After this operation, the current bloom filter contains all elements in
+   * other.
+   **/
+  public void merge(BloomFilter other) {
+    if (other.k != this.k || other.hashes.size() != this.hashes.size()) {
+      throw new IllegalArgumentException("Incompatible bloom filters");
+    }
+    this.hashes.or(other.hashes);
+  }
+
+  private class RandomInRange
+      implements Iterable<RandomInRange>, Iterator<RandomInRange> {
+
+    private Random prng;
+    private int max; // Maximum value returned + 1
+    private int count; // Number of random elements to generate
+    private int i = 0; // Number of elements generated
+    public int value; // The current value
+
+    RandomInRange(int maximum, int k) {
+      max = maximum;
+      count = k;
+      prng = new Random();
+    }
+    public void init(Object o) {
+      prng.setSeed(o.hashCode());
+    }
+    public Iterator<RandomInRange> iterator() {
+      i = 0;
+      return this;
+    }
+    public RandomInRange next() {
+      i++;
+      value = prng.nextInt() % max;
+      if (value<0) value = -value;
+      return this;
+    }
+    public boolean hasNext() {
+      return i < count;
+    }
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+  }
+}
+````
+  3 https://github.com/Baqend/Orestes-Bloomfilter
 - C++
-  如果你写C++，在google上面，直接搜C++ Bloom Filter implementation，然后马上就可以得到相应的代码了。
+  当然的话如果你写C++，在google上面，直接搜C++ Bloom Filter implementation，然后马上就可以得到相应的代码了。
+````
+#include <iostream>
+#include <bitset>
+#include <cmath>
+ 
+using namespace std;
 
+typedef unsigned int uint; 
+const int DEFAULT_SIZE = 1 << 20;
+const int seed[] = { 5, 7, 11, 13, 31, 37, 61 };
+
+
+class BloomFilter {
+public:	
+      BloomFilter() : hash_func_count(3) {}    
+      BloomFilter(int bitsize, int str_count) {     	
+          hash_func_count = ceil((bitsize / str_count) * log(2));	
+      }    
+      ~BloomFilter() {}		
+      
+      uint RSHash(const char *str, int seed);	
+      void Add(const char *str);	
+      bool LookUp(const char *str); 
+
+private:	
+      int hash_func_count;	
+      bitset<DEFAULT_SIZE> bits;
+};
+
+uint BloomFilter::RSHash(const char *str, int seed) {  
+    uint base = 63689;
+    uint hash = 0;
+         
+    while (*str) {      
+      hash = hash * base + (*str++);      
+      base *= seed;    
+    }         
+
+    return (hash & 0x7FFFFFFF);
+    }     
+void BloomFilter::Add(const char* str) {
+	int index = 0;	
+	for(int i = 0; i < hash_func_count; ++i) {	
+		index = static_cast<int>(RSHash(str, seed[i])) % DEFAULT_SIZE;	
+		bits[index] = 1;	
+	}		
+	return ;
+} 
+
+bool BloomFilter::LookUp(const char* str) {	
+     int index = 0;	
+     for(int i = 0; i < hash_func_count; ++i) {		
+        index = static_cast<int>(RSHash(str, seed[i])) % DEFAULT_SIZE;		
+        if (!bits[index]) return false; 	
+     } 	
+     
+     return true;
+}
+````
 - javascript
+````
+// JavaScript
+class BloomFilter {  
+  constructor(maxKeys, errorRate) {    
+     this.bitMap = [];   
+     this.maxKeys = maxKeys;    
+     this.errorRate = errorRate;    
+     // 位图变量的长度，需要根据maxKeys和errorRate来计算    
+     this.bitSize = Math.ceil(maxKeys * (-Math.log(errorRate) / (Math.log(2) * Math.log(2))));    
+     // 哈希数量    
+     this.hashCount = Math.ceil(Math.log(2) * (this.bitSize / maxKeys));    
+     // 已加入元素数量    
+     this.keyCount = 0;  
+  }  
+  
+  bitSet(bit) {    
+     let numArr = Math.floor(bit / 31);    
+     let numBit = Math.floor(bit % 31);    
+     this.bitMap[numArr] |= 1 << numBit;  
+  }  
+  
+  bitGet(bit) {    
+     let numArr = Math.floor(bit / 31);    
+     let numBit = Math.floor(bit % 31);    
+     return (this.bitMap[numArr] &= 1 << numBit);  
+  }  
+  
+  add(key) {    
+     if (this.contain(key)) {      
+       return -1;    
+     }    
+     
+     let hash1 = MurmurHash(key, 0, 0),      
+         hash2 = MurmurHash(key, 0, hash1);    
+         
+     for (let i = 0; i < this.hashCount; i++) {      
+         this.bitSet(Math.abs(Math.floor((hash1 + i * hash2) % this.bitSize)));    
+     }    
+     
+     this.keyCount++;  
+  }  
+  
+  contain(key) {    
+      let hash1 = MurmurHash(key, 0, 0);  
+      let hash2 = MurmurHash(key, 0, hash1);    
+      
+      for (let i = 0; i < this.hashCount; i++) {      
+          if (!this.bitGet(Math.abs(Math.floor((hash1 + i * hash2) % this.bitSize)))) {        
+            return false;      
+          }    
+      }    
+      
+      return true;  
+  }
+}
 
+
+/** * MurmurHash 
+* 
+* 参考 http://murmurhash.googlepages.com/ 
+* 
+* data：待哈希的值 
+* offset： 
+* seed：种子集 
+* 
+*/
+function MurmurHash(data, offset, seed) {
+  let len = data.length,    
+     m = 0x5bd1e995,    
+     r = 24,    
+     h = seed ^ len,    
+     len_4 = len >> 2;  
+  
+  for (let i = 0; i < len_4; i++) {  
+    let i_4 = (i << 2) + offset,  
+        k = data[i_4 + 3];    
+    k = k << 8;    
+    k = k | (data[i_4 + 2] & 0xff);    
+    k = k << 8;    
+    k = k | (data[i_4 + 1] & 0xff);    
+    k = k << 8;    
+    k = k | (data[i_4 + 0] & 0xff);    
+    k *= m;    
+    k ^= k >>> r;    
+    k *= m;    
+    h *= m;    
+    h ^= k;  
+  }  
+  
+  // avoid calculating modulo  
+  let len_m = len_4 << 2,   
+   left = len - len_m,   
+   i_m = len_m + offset;  
+   
+  if (left != 0) {   
+   if (left >= 3) {    
+     h ^= data[i_m + 2] << 16;    
+   }    
+   
+   if (left >= 2) {    
+     h ^= data[i_m + 1] << 8;    
+   }    
+   
+   if (left >= 1) {    
+     h ^= data[i_m];    
+   }    
+   
+   h *= m;  
+  }  
+  
+  h ^= h >>> 13;  
+  h *= m;  
+  h ^= h >>> 15;    
+  return h;
+}
+
+let bloomFilter = new BloomFilter(10000, 0.01);
+
+bloomFilter.add("abcdefgh");
+console.log(bloomFilter.contain("abcdefgh"));
+console.log(bloomFilter.contain("abcdefghi"));
+````
 ###17.2LRU Cache
 我们继续学习第二个高级数据结构就是LRU Cache。
 ####Cache缓存
