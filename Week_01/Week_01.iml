@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/design-circular-deque" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/merge-sorted-array" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/merge-two-sorted-lists" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/plus-one" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/remove-duplicates-from-sorted-array" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/rotate-array" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/trapping-rain-water" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/two-sum" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
